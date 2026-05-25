@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}AEO Helper{% endblock %}
+{% block header_title %}AEO (Answer Engine Optimization){% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+    <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
+            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste content to optimize for voice/answer engines..."></textarea>
+        </div>
+
+        <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded slide-up">
+            <h4 class="font-bold text-purple-800 dark:text-purple-300">AEO Disclaimer</h4>
+            <p class="text-sm text-purple-700 dark:text-purple-400">
+                AEO is about providing direct answers to specific questions. Structured data, clear headings, and concise "Featured Snippet" style paragraphs are key. Remember that users often ask questions in a conversational tone.
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">Answerability</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between">
+                    <span>Direct Answers</span>
+                    <span class="font-bold text-purple-600">High</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Question Phrases</span>
+                    <span id="question-count" class="font-bold">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('analysisUpdate', (e) => {
+    const text = document.getElementById('editor').value;
+    const questions = (text.match(/\?/g) || []).length;
+    document.getElementById('question-count').innerText = questions;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}GEO Content Optimizer{% endblock %}
+{% block header_title %}GEO Content (Generative Engine Optimization){% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+    <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
+            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste your GEO content here..."></textarea>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded slide-up">
+            <h4 class="font-bold text-blue-800 dark:text-blue-300">GEO Disclaimer</h4>
+            <p class="text-sm text-blue-700 dark:text-blue-400">
+                Generative Engine Optimization (GEO) focuses on making your content discoverable by AI models like ChatGPT and Perplexity. Emphasize factual citations, authoritative tone, and clear entity relationships. AI models value accuracy and source-able information.
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">GEO Indicators</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Authority Score</span>
+                        <span id="geo-score">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div id="geo-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('analysisUpdate', (e) => {
+    const data = e.detail;
+    const geoScore = data.advanced.geo_score;
+    document.getElementById('geo-score').innerText = geoScore + '%';
+    document.getElementById('geo-progress').style.width = geoScore + '%';
+});
+</script>
+{% endblock %}

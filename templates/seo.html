@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}SEO Content Optimizer{% endblock %}
+{% block header_title %}SEO Content Optimizer{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+    <!-- Editor Column -->
+    <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex space-x-2">
+                    <button onclick="copyText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Copy"><i class="fas fa-copy"></i></button>
+                    <button onclick="clearText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Clear"><i class="fas fa-trash"></i></button>
+                    <button onclick="exportFile('txt')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Export TXT"><i class="fas fa-file-alt"></i></button>
+                </div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest">Live SEO Analysis</div>
+            </div>
+            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste your SEO content here..."></textarea>
+        </div>
+
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded slide-up" style="animation-delay: 0.1s">
+            <h4 class="font-bold text-indigo-800 dark:text-indigo-300">Human Disclaimer</h4>
+            <p class="text-sm text-indigo-700 dark:text-indigo-400">
+                SEO is not just about keyword density. High-quality, human-centric content that provides real value is the ultimate ranking factor. Use these metrics as a guide, but always write for humans first, search engines second.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Column -->
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.2s">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">SEO Metrics</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Optimization Score</span>
+                        <span id="seo-score">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div id="seo-progress" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded text-center">
+                        <div class="text-xs text-gray-500 uppercase">Readability</div>
+                        <div id="readability-val" class="text-xl font-bold">-</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded text-center">
+                        <div class="text-xs text-gray-500 uppercase">Grade Level</div>
+                        <div id="grade-val" class="text-xl font-bold">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.3s">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">Keyword Density</h3>
+            <canvas id="keywordChart" height="200"></canvas>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.4s">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">Writing Alerts</h3>
+            <div id="alerts-list" class="space-y-2">
+                <div class="text-green-500 text-sm"><i class="fas fa-check-circle mr-2"></i> All good so far.</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let keywordChart;
+
+document.addEventListener('analysisUpdate', (e) => {
+    const data = e.detail;
+
+    document.getElementById('readability-val').innerText = data.readability.flesch_reading_ease.toFixed(1);
+    document.getElementById('grade-val').innerText = data.readability.flesch_kincaid_grade;
+
+    // Update Chart
+    const labels = data.seo.word_freq.slice(0, 5).map(x => x[0]);
+    const values = data.seo.word_freq.slice(0, 5).map(x => x[1]);
+
+    if (keywordChart) {
+        keywordChart.data.labels = labels;
+        keywordChart.data.datasets[0].data = values;
+        keywordChart.update();
+    } else {
+        const ctx = document.getElementById('keywordChart').getContext('2d');
+        keywordChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Occurrences',
+                    data: values,
+                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                    borderColor: 'rgb(79, 70, 229)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    const seoScore = data.seo.seo_score;
+    document.getElementById('seo-score').innerText = seoScore + '%';
+    document.getElementById('seo-progress').style.width = seoScore + '%';
+
+    const alertsList = document.getElementById('alerts-list');
+    alertsList.innerHTML = '';
+    if (data.seo.passive_voice_count > 0) {
+        alertsList.innerHTML += `<div class="text-yellow-600 text-sm fade-in"><i class="fas fa-exclamation-triangle mr-2"></i> ${data.seo.passive_voice_count} passive voice instances.</div>`;
+    }
+    if (data.stats.avg_sentence_length > 25) {
+        alertsList.innerHTML += `<div class="text-red-500 text-sm fade-in"><i class="fas fa-exclamation-circle mr-2"></i> High average sentence length (${data.stats.avg_sentence_length}).</div>`;
+    }
+    if (alertsList.innerHTML === '') {
+        alertsList.innerHTML = '<div class="text-green-500 text-sm fade-in"><i class="fas fa-check-circle mr-2"></i> No issues detected.</div>';
+    }
+});
+</script>
+{% endblock %}

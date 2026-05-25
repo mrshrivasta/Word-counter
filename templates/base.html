@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter Pro - {% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dark { background-color: #1a202c; color: #e2e8f0; }
+        .dark .bg-white { background-color: #2d3748; color: #e2e8f0; }
+        .dark .text-gray-700 { color: #cbd5e0; }
+        .focus-mode .sidebar { display: none; }
+        .focus-mode .header { display: none; }
+        .typewriter-cursor { border-right: 2px solid #5a67d8; animation: blink 0.7s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .slide-up { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .stat-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-indigo-900 text-white flex-shrink-0 transition-all duration-300">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">WC Pro</h1>
+                <p class="text-xs text-indigo-300">Multi-Purpose Counter</p>
+            </div>
+            <nav class="mt-6">
+                <a href="/" class="flex items-center px-6 py-3 {% if page == 'seo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
+                    <i class="fas fa-search mr-3"></i> SEO Optimizer
+                </a>
+                <a href="/geo" class="flex items-center px-6 py-3 {% if page == 'geo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
+                    <i class="fas fa-globe mr-3"></i> GEO Content
+                </a>
+                <a href="/aeo" class="flex items-center px-6 py-3 {% if page == 'aeo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
+                    <i class="fas fa-microphone mr-3"></i> AEO Helper
+                </a>
+                <a href="/aio" class="flex items-center px-6 py-3 {% if page == 'aio' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
+                    <i class="fas fa-robot mr-3"></i> AIO Check
+                </a>
+                <a href="/sxo" class="flex items-center px-6 py-3 {% if page == 'sxo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
+                    <i class="fas fa-user-check mr-3"></i> SXO Expert
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-64 p-6 bg-indigo-950">
+                <div class="flex justify-between items-center">
+                    <button id="darkModeToggle" class="p-2 rounded-full hover:bg-indigo-800">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="focusModeToggle" class="p-2 rounded-full hover:bg-indigo-800">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-gray-100 dark:bg-gray-900">
+            <!-- Header -->
+            <header class="header bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{% block header_title %}{% endblock %}</h2>
+                <div class="flex space-x-4">
+                    <div id="streakDisplay" class="flex items-center text-orange-500 font-bold">
+                        <i class="fas fa-fire mr-1"></i> <span id="streakCount">0</span>
+                    </div>
+                    <div id="goalDisplay" class="flex items-center text-green-500">
+                        <i class="fas fa-bullseye mr-1"></i> <span id="goalProgress">0/500</span>
+                    </div>
+                    <div id="pomodoroDisplay" class="flex items-center text-red-500 mr-4">
+                        <i class="fas fa-clock mr-1"></i> <span id="pomoTimer">25:00</span>
+                        <button onclick="togglePomo()" class="ml-1 text-xs bg-red-100 hover:bg-red-200 px-1 rounded">Start</button>
+                    </div>
+                    <div id="wpmDisplay" class="flex items-center text-blue-500">
+                        <i class="fas fa-keyboard mr-1"></i> <span id="wpmCount">0</span> WPM
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- Footer Stats Bar -->
+            <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-2 flex justify-around text-sm">
+                <span>Words: <strong id="footerWords">0</strong></span>
+                <span>Chars: <strong id="footerChars">0</strong></span>
+                <span>Reading Time: <strong id="footerReading">0m</strong></span>
+                <span id="typingStatus" class="text-indigo-500"></span>
+            </footer>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

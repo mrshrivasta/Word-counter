@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}AIO Check{% endblock %}
+{% block header_title %}AIO (AI Interaction Optimization){% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+    <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
+            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Check how AI-friendly your content is..."></textarea>
+        </div>
+
+        <div class="bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500 p-4 rounded slide-up">
+            <h4 class="font-bold text-teal-800 dark:text-teal-300">AIO Disclaimer</h4>
+            <p class="text-sm text-teal-700 dark:text-teal-400">
+                AIO ensures your content is easily digestible by automated systems while remaining valuable to humans. Avoid overly complex jargon that might confuse semantic analysis, and ensure your main points are logically grouped.
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">AIO Score</h3>
+            <div id="aio-score-display" class="w-24 h-24 mx-auto rounded-full border-8 border-teal-500 flex items-center justify-center text-xl font-bold transition-all duration-500">
+                0%
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('analysisUpdate', (e) => {
+    const data = e.detail;
+    document.getElementById('aio-score-display').innerText = data.advanced.aio_score + '%';
+});
+</script>
+{% endblock %}

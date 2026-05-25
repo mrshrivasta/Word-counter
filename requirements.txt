@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+nltk
+textstat
+python-docx
+reportlab
+werkzeug
+playwright
