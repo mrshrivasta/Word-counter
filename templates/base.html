@@ -3,100 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Counter Pro - {% block title %}{% endblock %}</title>
+    <title>Word Counter Pro - SEO, GEO, AEO, AIO, SXO Expert</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        .dark { background-color: #1a202c; color: #e2e8f0; }
-        .dark .bg-white { background-color: #2d3748; color: #e2e8f0; }
-        .dark .text-gray-700 { color: #cbd5e0; }
-        .focus-mode .sidebar { display: none; }
-        .focus-mode .header { display: none; }
-        .typewriter-cursor { border-right: 2px solid #5a67d8; animation: blink 0.7s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --accent-primary: #4f46e5;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
 
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f1f5f9;
+            --accent-primary: #818cf8;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
 
-        .slide-up { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* Themes */
+        body.theme-cyberpunk {
+            --bg-primary: #0d0221;
+            --bg-secondary: #261447;
+            --text-primary: #ff0055;
+            --accent-primary: #00f0ff;
+        }
+        body.theme-glass {
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
 
-        .stat-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .sidebar { background: #1e1b4b; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-collapsed { width: 4rem; }
+
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+
+        #editor { line-height: 1.7; letter-spacing: 0.2px; font-family: 'Poppins', sans-serif; }
+
+        .glow-indigo:hover { box-shadow: 0 0 15px rgba(79, 70, 229, 0.4); }
+
+        .active-nav-indicator { position: absolute; left: 0; width: 4px; height: 100%; background: var(--accent-primary); border-radius: 0 4px 4px 0; }
+
+        .focus-mode .sidebar, .focus-mode .header, .focus-mode .stats-sidebar { display: none !important; }
+        .focus-mode main { padding: 0 !important; }
+        .focus-mode #editor-container { max-width: 800px; margin: 0 auto; height: 100vh; padding-top: 5rem; }
     </style>
 </head>
 <body class="transition-colors duration-300">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="sidebar w-64 bg-indigo-900 text-white flex-shrink-0 transition-all duration-300">
-            <div class="p-6">
-                <h1 class="text-2xl font-bold">WC Pro</h1>
-                <p class="text-xs text-indigo-300">Multi-Purpose Counter</p>
+        <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 relative z-20 transition-all duration-300">
+            <div class="p-6 flex items-center justify-between">
+                <h1 class="text-2xl font-bold logo-text">WC PRO</h1>
+                <button onclick="toggleSidebar()" class="hover:text-indigo-400"><i class="fas fa-bars"></i></button>
             </div>
-            <nav class="mt-6">
-                <a href="/" class="flex items-center px-6 py-3 {% if page == 'seo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
-                    <i class="fas fa-search mr-3"></i> SEO Optimizer
+            <nav class="mt-6 space-y-1">
+                {% for p in ['seo', 'geo', 'aeo', 'aio', 'sxo'] %}
+                <a href="/{{ p if p != 'seo' else '' }}" class="group relative flex items-center px-6 py-4 transition-all hover:bg-white/10 {% if page == p %}bg-white/10{% endif %}">
+                    {% if page == p %}<div class="active-nav-indicator"></div>{% endif %}
+                    <i class="fas fa-{% if p=='seo' %}search{% elif p=='geo' %}globe{% elif p=='aeo' %}microphone{% elif p=='aio' %}robot{% else %}user-check{% endif %} w-6 text-xl"></i>
+                    <span class="ml-4 font-semibold nav-text">{{ p|upper }} Optimizer</span>
                 </a>
-                <a href="/geo" class="flex items-center px-6 py-3 {% if page == 'geo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
-                    <i class="fas fa-globe mr-3"></i> GEO Content
-                </a>
-                <a href="/aeo" class="flex items-center px-6 py-3 {% if page == 'aeo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
-                    <i class="fas fa-microphone mr-3"></i> AEO Helper
-                </a>
-                <a href="/aio" class="flex items-center px-6 py-3 {% if page == 'aio' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
-                    <i class="fas fa-robot mr-3"></i> AIO Check
-                </a>
-                <a href="/sxo" class="flex items-center px-6 py-3 {% if page == 'sxo' %}bg-indigo-700{% endif %} hover:bg-indigo-800">
-                    <i class="fas fa-user-check mr-3"></i> SXO Expert
-                </a>
+                {% endfor %}
             </nav>
-            <div class="absolute bottom-0 w-64 p-6 bg-indigo-950">
-                <div class="flex justify-between items-center">
-                    <button id="darkModeToggle" class="p-2 rounded-full hover:bg-indigo-800">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button id="focusModeToggle" class="p-2 rounded-full hover:bg-indigo-800">
-                        <i class="fas fa-expand"></i>
-                    </button>
+            <div class="absolute bottom-0 w-full p-4 space-y-4">
+                <div class="flex justify-around items-center bg-black/20 rounded-xl p-2">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-moon"></i></button>
+                    <button onclick="toggleFocusMode()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-expand"></i></button>
+                    <button onclick="showThemeMenu()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-palette"></i></button>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-hidden bg-gray-100 dark:bg-gray-900">
+        <main class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
-            <header class="header bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{% block header_title %}{% endblock %}</h2>
-                <div class="flex space-x-4">
-                    <div id="streakDisplay" class="flex items-center text-orange-500 font-bold">
-                        <i class="fas fa-fire mr-1"></i> <span id="streakCount">0</span>
+            <header class="header h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-8 z-10">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-xl font-bold tracking-tight">{% block header_title %}{% endblock %}</h2>
+                    <span id="autosaveStatus" class="text-xs text-gray-400 flex items-center">
+                        <i class="fas fa-check-circle mr-1"></i> Ready
+                    </span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                        <i class="fas fa-fire text-orange-500"></i>
+                        <span id="streakCount" class="font-bold text-orange-600">0</span>
                     </div>
-                    <div id="goalDisplay" class="flex items-center text-green-500">
-                        <i class="fas fa-bullseye mr-1"></i> <span id="goalProgress">0/500</span>
+                    <div class="hidden md:flex items-center space-x-3">
+                        <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div id="goalBar" class="h-full bg-green-500 transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <span id="goalText" class="text-xs font-semibold text-gray-500">0/500</span>
                     </div>
-                    <div id="pomodoroDisplay" class="flex items-center text-red-500 mr-4">
-                        <i class="fas fa-clock mr-1"></i> <span id="pomoTimer">25:00</span>
-                        <button onclick="togglePomo()" class="ml-1 text-xs bg-red-100 hover:bg-red-200 px-1 rounded">Start</button>
-                    </div>
-                    <div id="wpmDisplay" class="flex items-center text-blue-500">
-                        <i class="fas fa-keyboard mr-1"></i> <span id="wpmCount">0</span> WPM
+                    <div id="wpmCounter" class="flex items-center text-indigo-500 font-bold">
+                        <i class="fas fa-keyboard mr-2"></i> <span id="wpmValue">0</span> WPM
                     </div>
                 </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-6">
-                {% block content %}{% endblock %}
+            <div class="flex-1 overflow-hidden flex">
+                <!-- Editor Area -->
+                <div id="editor-container" class="flex-1 overflow-y-auto p-8 relative">
+                    {% block content %}{% endblock %}
+                </div>
+
+                <!-- Right Stats Sidebar -->
+                <aside class="stats-sidebar w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto p-6 hidden lg:block">
+                    {% block stats_sidebar %}{% endblock %}
+                </aside>
             </div>
 
-            <!-- Footer Stats Bar -->
-            <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-2 flex justify-around text-sm">
-                <span>Words: <strong id="footerWords">0</strong></span>
-                <span>Chars: <strong id="footerChars">0</strong></span>
-                <span>Reading Time: <strong id="footerReading">0m</strong></span>
-                <span id="typingStatus" class="text-indigo-500"></span>
+            <!-- Footer -->
+            <footer class="h-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 text-xs font-medium text-gray-500">
+                <div class="flex space-x-6">
+                    <span>Words: <strong id="footWords" class="text-gray-900 dark:text-white">0</strong></span>
+                    <span>Chars: <strong id="footChars" class="text-gray-900 dark:text-white">0</strong></span>
+                    <span>Reading: <strong id="footRead" class="text-gray-900 dark:text-white">0m</strong></span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="latencyDisplay">Latency: 0ms</span>
+                    <span class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> AI-Free Analytics</span>
+                </div>
             </footer>
         </main>
+    </div>
+
+    <div id="themeMenu" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 w-80 shadow-2xl scale-in">
+            <h3 class="text-lg font-bold mb-6">Select Theme</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="setTheme('default')" class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-500">Minimal</button>
+                <button onclick="setTheme('cyberpunk')" class="p-4 rounded-xl border-2 border-pink-500 text-pink-500">Cyberpunk</button>
+                <button onclick="setTheme('neon')" class="p-4 rounded-xl border-2 border-green-500 text-green-500">Neon</button>
+                <button onclick="setTheme('glass')" class="p-4 rounded-xl border-2 border-blue-400 text-blue-400">Glass</button>
+            </div>
+            <button onclick="hideThemeMenu()" class="mt-8 w-full py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold">Close</button>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

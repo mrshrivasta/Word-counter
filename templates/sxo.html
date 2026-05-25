@@ -1,40 +1,44 @@
 {% extends "base.html" %}
 
-{% block title %}SXO Expert{% endblock %}
-{% block header_title %}SXO (Search Experience Optimization){% endblock %}
+{% block title %}SXO Optimizer{% endblock %}
+{% block header_title %}Search Experience Optimization (SXO){% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
-            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Optimize the user experience of your content..."></textarea>
-        </div>
+<div class="space-y-6 fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+        <textarea id="editor" class="w-full h-[500px] p-8 bg-transparent outline-none resize-none text-lg" placeholder="Focus on user intent and structural flow..."></textarea>
+    </div>
 
-        <div class="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded slide-up">
-            <h4 class="font-bold text-orange-800 dark:text-orange-300">SXO Disclaimer</h4>
-            <p class="text-sm text-orange-700 dark:text-orange-400">
-                SXO combines SEO with UX. It's about how the user interacts with the information. Clear structure, bullet points, and answering user intent immediately are crucial for reducing bounce rates and improving satisfaction.
-            </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Experience Markers</h3>
+            <div id="sxoMarkers" class="space-y-3">
+                <!-- Markers -->
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Reading Momentum</h3>
+            <canvas id="momentumChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stats_sidebar %}
+<div class="space-y-8">
+    <div class="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-3xl border border-orange-100 dark:border-orange-800 slide-up">
+        <h3 class="text-sm font-bold text-orange-500 uppercase mb-4 text-center">SXO Score</h3>
+        <div id="sxoScoreDisplay" class="text-4xl font-black text-center text-orange-600">0%</div>
+        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div id="sxoBar" class="h-full bg-orange-600 transition-all duration-1000" style="width: 0%"></div>
         </div>
     </div>
 
-    <div class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">Experience Metrics</h3>
-            <div class="space-y-4 text-sm">
-                <div class="flex justify-between">
-                    <span>Clarity</span>
-                    <span class="text-orange-500 font-bold">Good</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Intent Match</span>
-                    <span class="text-green-500 font-bold">High</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Experience Score</span>
-                    <span id="sxo-score" class="font-bold">0%</span>
-                </div>
-            </div>
+    <div class="slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Wall of Text Check</h3>
+        <div id="wallCheck" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-between">
+            <span class="text-xs font-bold uppercase text-gray-400">Status</span>
+            <span id="wallStatus" class="font-bold text-green-600">Perfect</span>
         </div>
     </div>
 </div>
@@ -42,9 +46,56 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('analysisUpdate', (e) => {
+let momChart;
+document.addEventListener('analysisData', (e) => {
     const data = e.detail;
-    document.getElementById('sxo-score').innerText = data.advanced.sxo_score + '%';
+
+    document.getElementById('sxoScoreDisplay').innerText = data.advanced.sxo_score + '%';
+    document.getElementById('sxoBar').style.width = data.advanced.sxo_score + '%';
+
+    const wallStatus = document.getElementById('wallStatus');
+    const wallCheck = document.getElementById('wallCheck');
+    if (data.structure.wall_of_text_indices.length > 0) {
+        wallStatus.innerText = 'Red Flag';
+        wallStatus.className = 'font-bold text-red-600';
+        wallCheck.className = 'p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-between';
+    } else {
+        wallStatus.innerText = 'Perfect';
+        wallStatus.className = 'font-bold text-green-600';
+        wallCheck.className = 'p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-between';
+    }
+
+    const labels = data.structure.sentence_lengths.map((_, i) => i + 1);
+    const values = data.structure.sentence_lengths;
+
+    if (momChart) {
+        momChart.data.labels = labels;
+        momChart.data.datasets[0].data = values;
+        momChart.update();
+    } else {
+        const ctx = document.getElementById('momentumChart').getContext('2d');
+        momChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sentence Length',
+                    data: values,
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true, grid: { display: false } }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

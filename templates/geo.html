@@ -1,49 +1,104 @@
 {% extends "base.html" %}
 
-{% block title %}GEO Content Optimizer{% endblock %}
-{% block header_title %}GEO Content (Generative Engine Optimization){% endblock %}
+{% block title %}GEO / AEO Intelligence{% endblock %}
+{% block header_title %}GEO & AEO Content Optimization{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
-            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste your GEO content here..."></textarea>
-        </div>
+<div class="space-y-6 fade-in">
+    <!-- Editor -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+        <textarea id="editor" class="w-full h-[500px] p-8 bg-transparent outline-none resize-none text-lg" placeholder="Focus on authoritative, factual content for AI engines..."></textarea>
+    </div>
 
-        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded slide-up">
-            <h4 class="font-bold text-blue-800 dark:text-blue-300">GEO Disclaimer</h4>
-            <p class="text-sm text-blue-700 dark:text-blue-400">
-                Generative Engine Optimization (GEO) focuses on making your content discoverable by AI models like ChatGPT and Perplexity. Emphasize factual citations, authoritative tone, and clear entity relationships. AI models value accuracy and source-able information.
-            </p>
+    <!-- Snippet Preview -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">AI Featured Snippet Prediction</h3>
+        <div id="snippetContainer" class="space-y-4">
+            <div class="text-gray-400 italic text-sm">No snippet candidates detected...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stats_sidebar %}
+<div class="space-y-8">
+    <div class="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-3xl border border-blue-100 dark:border-blue-800 slide-up">
+        <h3 class="text-sm font-bold text-blue-500 uppercase mb-4 text-center">GEO Authority</h3>
+        <div id="geoScoreDisplay" class="text-4xl font-black text-center text-blue-600">0%</div>
+        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div id="geoBar" class="h-full bg-blue-600 transition-all duration-1000" style="width: 0%"></div>
         </div>
     </div>
 
-    <div class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">GEO Indicators</h3>
-            <div class="space-y-4">
-                <div>
-                    <div class="flex justify-between text-sm mb-1">
-                        <span>Authority Score</span>
-                        <span id="geo-score">0%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div id="geo-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
+    <div class="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-3xl border border-purple-100 dark:border-purple-800 slide-up">
+        <h3 class="text-sm font-bold text-purple-500 uppercase mb-4 text-center">AEO Relevance</h3>
+        <div id="aeoScoreDisplay" class="text-4xl font-black text-center text-purple-600">0%</div>
+        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div id="aeoBar" class="h-full bg-purple-600 transition-all duration-1000" style="width: 0%"></div>
         </div>
+    </div>
+
+    <div class="slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Structure Analytics</h3>
+        <canvas id="structureChart" height="200"></canvas>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('analysisUpdate', (e) => {
+let structChart;
+
+document.addEventListener('analysisData', (e) => {
     const data = e.detail;
-    const geoScore = data.advanced.geo_score;
-    document.getElementById('geo-score').innerText = geoScore + '%';
-    document.getElementById('geo-progress').style.width = geoScore + '%';
+
+    document.getElementById('geoScoreDisplay').innerText = data.advanced.geo_score + '%';
+    document.getElementById('geoBar').style.width = data.advanced.geo_score + '%';
+
+    document.getElementById('aeoScoreDisplay').innerText = data.advanced.aeo_score + '%';
+    document.getElementById('aeoBar').style.width = data.advanced.aeo_score + '%';
+
+    // Snippets
+    const snipBox = document.getElementById('snippetContainer');
+    snipBox.innerHTML = '';
+    if (data.geo_aeo.snippet_candidates.length > 0) {
+        data.geo_aeo.snippet_candidates.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border-l-4 border-indigo-500 text-sm font-medium fade-in';
+            div.innerText = s;
+            snipBox.appendChild(div);
+        });
+    } else {
+        snipBox.innerHTML = '<div class="text-gray-400 italic text-sm">No snippet candidates detected...</div>';
+    }
+
+    // Chart
+    const labels = ['Sentences', 'Paragraphs', 'Headings', 'Citations'];
+    const values = [data.stats.sentence_count, data.structure.paragraph_count, data.structure.heading_count, data.geo_aeo.citation_markers];
+
+    if (structChart) {
+        structChart.data.datasets[0].data = values;
+        structChart.update();
+    } else {
+        const ctx = document.getElementById('structureChart').getContext('2d');
+        structChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Content Density',
+                    data: values,
+                    backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                    borderColor: '#4f46e5',
+                    pointBackgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                scales: { r: { beginAtZero: true, ticks: { display: false } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

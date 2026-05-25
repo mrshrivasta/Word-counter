@@ -2,30 +2,47 @@ from flask import Blueprint, request, jsonify, send_file
 from app.analysis.metrics import get_basic_stats
 from app.analysis.readability import get_readability_stats
 from app.analysis.seo import get_seo_analysis
+from app.analysis.semantics import analyze_semantics
+from app.analysis.structure import analyze_structure
+from app.analysis.geo_aeo import analyze_geo_aeo
 from werkzeug.utils import secure_filename
 import os
 from docx import Document
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import time
 
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/analyze', methods=['POST'])
 def analyze():
+    start_time = time.time()
     data = request.json
     text = data.get('text', '')
 
-    seo_data = get_seo_analysis(text)
+    stats = get_basic_stats(text)
+    readability = get_readability_stats(text)
+    seo = get_seo_analysis(text)
+    semantics = analyze_semantics(text)
+    structure = analyze_structure(text)
+    geo_aeo = analyze_geo_aeo(text)
+
+    processing_time = (time.time() - start_time) * 1000 # ms
+
     return jsonify({
-        'stats': get_basic_stats(text),
-        'readability': get_readability_stats(text),
-        'seo': seo_data,
+        'stats': stats,
+        'readability': readability,
+        'seo': seo,
+        'semantics': semantics,
+        'structure': structure,
+        'geo_aeo': geo_aeo,
         'advanced': {
-            'geo_score': seo_data.get('geo_score', 0),
-            'aeo_score': seo_data.get('aeo_score', 0),
-            'aio_score': seo_data.get('aio_score', 0),
-            'sxo_score': seo_data.get('sxo_score', 0)
-        }
+            'geo_score': geo_aeo.get('geo_authority_score', 0),
+            'aeo_score': geo_aeo.get('aeo_relevance', 0),
+            'aio_score': 100 - semantics.get('filler_density', 0) * 5,
+            'sxo_score': structure.get('variety_score', 0)
+        },
+        'processing_time': round(processing_time, 2)
     })
 
 @api_bp.route('/upload', methods=['POST'])
@@ -55,7 +72,6 @@ def upload_file():
 
 @api_bp.route('/export/<format>', methods=['POST'])
 def export_file(format):
-    # ... logic from app.py ...
     data = request.json
     text = data.get('text', '')
 
@@ -71,8 +87,18 @@ def export_file(format):
         p.drawString(100, 800, "Text Export")
         y = 780
         for line in text.split('\n'):
-            p.drawString(100, y, line)
-            y -= 15
+            # simple wrap
+            words = line.split()
+            current_line = []
+            for word in words:
+                current_line.append(word)
+                if len(' '.join(current_line)) > 80:
+                    p.drawString(100, y, ' '.join(current_line))
+                    y -= 15
+                    current_line = []
+            if current_line:
+                p.drawString(100, y, ' '.join(current_line))
+                y -= 15
             if y < 50:
                 p.showPage()
                 y = 800

@@ -19,19 +19,21 @@ def get_seo_analysis(text):
     # Passive voice detection
     passive_voice_count = len(re.findall(r'\b(am|is|are|was|were|be|been|being)\b\s+([a-z]+ed|known|seen|found|given|taken|broken)\b', text, re.I))
 
-    # Mock more realistic scores based on content length and variety
-    geo_score = min(100, (len(words) // 8) + (passive_voice_count * 2))
-    aeo_score = min(100, (text.count('?') * 10) + (len(words) // 12))
-    aio_score = min(100, 100 - (passive_voice_count * 5) - (len(words) // 50))
-    sxo_score = min(100, (len(set(words)) // 4) + (len(words) // 15))
+    # Advanced SEO: SERP Preview Logic (extract title/meta)
+    title_match = re.search(r'#\s+(.+)', text)
+    title = title_match.group(1) if title_match else (text[:60] + '...' if len(text) > 60 else text)
+
+    meta_desc = text[:160] + '...' if len(text) > 160 else text
+    slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
 
     return {
         "word_freq": word_freq,
         "density": density,
         "passive_voice_count": passive_voice_count,
         "seo_score": min(100, (len(words) // 10) + (len(set(keywords)) // 5)),
-        "geo_score": geo_score,
-        "aeo_score": aeo_score,
-        "aio_score": aio_score,
-        "sxo_score": sxo_score
+        "serp_preview": {
+            "title": title[:70],
+            "description": meta_desc[:160],
+            "slug": slug[:50]
+        }
     }

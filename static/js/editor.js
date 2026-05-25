@@ -1,95 +1,84 @@
 const editor = document.getElementById('editor');
-const footerWords = document.getElementById('footerWords');
-const footerChars = document.getElementById('footerChars');
-const footerReading = document.getElementById('footerReading');
-const typingStatus = document.getElementById('typingStatus');
+const footWords = document.getElementById('footWords');
+const footChars = document.getElementById('footChars');
+const footRead = document.getElementById('footRead');
+const autosaveStatus = document.getElementById('autosaveStatus');
 
-let typingTimer;
-const typingDelay = 1000;
-
-let startTime;
-let wordCountAtStart = 0;
+let debounceTimer;
 
 if (editor) {
     editor.addEventListener('input', () => {
         const text = editor.value;
-        updateBasicStats(text);
 
-        if (!startTime) {
-            startTime = new Date();
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            wordCountAtStart = words;
-        }
+        // Update basic footer stats immediately
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        if (footWords) footWords.innerText = words;
+        if (footChars) footChars.innerText = text.length;
+        if (footRead) footRead.innerText = Math.ceil(words / 225) + 'm';
 
-        updateWPM(text);
+        updateGoalDisplay(words);
+        trackWPM(text);
 
-        clearTimeout(typingTimer);
-        typingStatus.innerText = 'Typing...';
-        typingTimer = setTimeout(() => {
-            analyzeText(text);
-            typingStatus.innerText = 'Saved';
-            localStorage.setItem('editorContent', text);
-        }, typingDelay);
+        // Debounce advanced analysis
+        autosaveStatus.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            performAnalysis(text);
+            localStorage.setItem('editor_content', text);
+        }, 800);
     });
 
-    // Load saved content
-    const savedContent = localStorage.getItem('editorContent');
-    if (savedContent) {
-        editor.value = savedContent;
-        updateBasicStats(savedContent);
-        analyzeText(savedContent);
+    // Load initial
+    const saved = localStorage.getItem('editor_content');
+    if (saved) {
+        editor.value = saved;
+        performAnalysis(saved);
     }
 }
 
-function updateWPM(text) {
-    if (!startTime) return;
-    const currentTime = new Date();
-    const timeElapsed = (currentTime - startTime) / 1000 / 60; // in minutes
-    if (timeElapsed > 0.05) { // Update after 3 seconds of typing
-        const currentWords = text.trim() ? text.trim().split(/\s+/).length : 0;
-        const wordsTyped = Math.max(0, currentWords - wordCountAtStart);
-        const wpm = Math.round(wordsTyped / timeElapsed);
-        const wpmDisplay = document.getElementById('wpmCount');
-        if (wpmDisplay) wpmDisplay.innerText = wpm;
+async function performAnalysis(text) {
+    if (!text.trim()) {
+        autosaveStatus.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Ready';
+        return;
     }
-}
-
-function updateBasicStats(text) {
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    const chars = text.length;
-    const readingTime = Math.ceil(words / 225);
-
-    if (footerWords) footerWords.innerText = words;
-    if (footerChars) footerChars.innerText = chars;
-    if (footerReading) footerReading.innerText = readingTime + 'm';
-
-    if (typeof updateGoalDisplay === 'function') {
-        updateGoalDisplay(words);
-    }
-}
-
-async function analyzeText(text) {
-    if (!text.trim()) return;
 
     try {
         const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text})
         });
         const data = await response.json();
-        updateDashboard(data);
-    } catch (error) {
-        console.error('Error analyzing text:', error);
+
+        document.getElementById('latencyDisplay').innerText = `Latency: ${data.processing_time}ms`;
+        autosaveStatus.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Saved ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+        // Dispatch to page-specific scripts
+        const event = new CustomEvent('analysisData', { detail: data });
+        document.dispatchEvent(event);
+
+    } catch (e) {
+        console.error("Analysis failed", e);
+        autosaveStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Error';
     }
 }
 
-function updateDashboard(data) {
-    const event = new CustomEvent('analysisUpdate', { detail: data });
-    document.dispatchEvent(event);
-}
+// Keyboard Shortcuts
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        performAnalysis(editor.value);
+    }
+    if (e.ctrlKey && e.key === '/') {
+        e.preventDefault();
+        toggleFocusMode();
+    }
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        performAnalysis(editor.value);
+    }
+});
 
-// Export functions
 async function exportFile(format) {
     const text = editor.value;
     const response = await fetch(`/api/export/${format}`, {
@@ -110,16 +99,15 @@ async function exportFile(format) {
     }
 }
 
-function clearText() {
-    if (confirm('Clear all text?')) {
-        editor.value = '';
-        updateBasicStats('');
-        localStorage.removeItem('editorContent');
-        startTime = null;
-    }
-}
-
 function copyText() {
     editor.select();
     document.execCommand('copy');
+}
+
+function clearText() {
+    if (confirm('Clear everything?')) {
+        editor.value = '';
+        localStorage.removeItem('editor_content');
+        performAnalysis('');
+    }
 }

@@ -1,29 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}AIO Check{% endblock %}
-{% block header_title %}AIO (AI Interaction Optimization){% endblock %}
+{% block title %}AIO Optimizer{% endblock %}
+{% block header_title %}AI Interaction Optimization (AIO){% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
-            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Check how AI-friendly your content is..."></textarea>
-        </div>
+<div class="space-y-6 fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+        <textarea id="editor" class="w-full h-[500px] p-8 bg-transparent outline-none resize-none text-lg" placeholder="Optimize for AI semantic understanding..."></textarea>
+    </div>
 
-        <div class="bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500 p-4 rounded slide-up">
-            <h4 class="font-bold text-teal-800 dark:text-teal-300">AIO Disclaimer</h4>
-            <p class="text-sm text-teal-700 dark:text-teal-400">
-                AIO ensures your content is easily digestible by automated systems while remaining valuable to humans. Avoid overly complex jargon that might confuse semantic analysis, and ensure your main points are logically grouped.
-            </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Semantic Clarity</h3>
+            <div id="semanticAnalysis" class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <span class="text-sm">Filler Word Impact</span>
+                    <span id="fillerImpact" class="font-bold text-green-500">Low</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Tone Profile</h3>
+            <canvas id="toneChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stats_sidebar %}
+<div class="space-y-8">
+    <div class="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-3xl border border-teal-100 dark:border-teal-800 slide-up">
+        <h3 class="text-sm font-bold text-teal-500 uppercase mb-4 text-center">AIO Readability</h3>
+        <div id="aioScoreDisplay" class="text-4xl font-black text-center text-teal-600">0%</div>
+        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div id="aioBar" class="h-full bg-teal-600 transition-all duration-1000" style="width: 0%"></div>
         </div>
     </div>
 
-    <div class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">AIO Score</h3>
-            <div id="aio-score-display" class="w-24 h-24 mx-auto rounded-full border-8 border-teal-500 flex items-center justify-center text-xl font-bold transition-all duration-500">
-                0%
-            </div>
+    <div class="slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Vocabulary Diversity</h3>
+        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
+            <span class="text-xs font-bold uppercase text-gray-400">Unique Words</span>
+            <span id="uniqueCount" class="text-xl font-bold">0</span>
         </div>
     </div>
 </div>
@@ -31,9 +49,47 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('analysisUpdate', (e) => {
+let toneChart;
+document.addEventListener('analysisData', (e) => {
     const data = e.detail;
-    document.getElementById('aio-score-display').innerText = data.advanced.aio_score + '%';
+
+    document.getElementById('aioScoreDisplay').innerText = data.advanced.aio_score.toFixed(0) + '%';
+    document.getElementById('aioBar').style.width = data.advanced.aio_score + '%';
+    document.getElementById('uniqueCount').innerText = data.stats.unique_words;
+
+    const fillerImpact = document.getElementById('fillerImpact');
+    if (data.semantics.filler_density > 5) {
+        fillerImpact.innerText = 'High';
+        fillerImpact.className = 'font-bold text-red-500';
+    } else {
+        fillerImpact.innerText = 'Low';
+        fillerImpact.className = 'font-bold text-green-500';
+    }
+
+    const labels = Object.keys(data.semantics.tone_scores);
+    const values = Object.values(data.semantics.tone_scores);
+
+    if (toneChart) {
+        toneChart.data.labels = labels;
+        toneChart.data.datasets[0].data = values;
+        toneChart.update();
+    } else {
+        const ctx = document.getElementById('toneChart').getContext('2d');
+        toneChart = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['rgba(79, 70, 229, 0.5)', 'rgba(20, 184, 166, 0.5)', 'rgba(245, 158, 11, 0.5)']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { r: { ticks: { display: false } } }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

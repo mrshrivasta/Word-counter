@@ -1,68 +1,86 @@
 {% extends "base.html" %}
 
-{% block title %}SEO Content Optimizer{% endblock %}
-{% block header_title %}SEO Content Optimizer{% endblock %}
+{% block title %}SEO Optimizer{% endblock %}
+{% block header_title %}SEO Content Intelligence{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-    <!-- Editor Column -->
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
-            <div class="flex justify-between items-center mb-2">
-                <div class="flex space-x-2">
-                    <button onclick="copyText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Copy"><i class="fas fa-copy"></i></button>
-                    <button onclick="clearText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Clear"><i class="fas fa-trash"></i></button>
-                    <button onclick="exportFile('txt')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Export TXT"><i class="fas fa-file-alt"></i></button>
-                </div>
-                <div class="text-xs text-gray-500 uppercase tracking-widest">Live SEO Analysis</div>
-            </div>
-            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste your SEO content here..."></textarea>
+<div class="space-y-6 fade-in">
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div class="flex space-x-2">
+            <button onclick="copyText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all" title="Copy (Ctrl+C)"><i class="fas fa-copy"></i></button>
+            <button onclick="clearText()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all" title="Clear"><i class="fas fa-trash"></i></button>
+            <button onclick="exportFile('txt')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all" title="Export TXT"><i class="fas fa-file-export"></i></button>
         </div>
-
-        <div class="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded slide-up" style="animation-delay: 0.1s">
-            <h4 class="font-bold text-indigo-800 dark:text-indigo-300">Human Disclaimer</h4>
-            <p class="text-sm text-indigo-700 dark:text-indigo-400">
-                SEO is not just about keyword density. High-quality, human-centric content that provides real value is the ultimate ranking factor. Use these metrics as a guide, but always write for humans first, search engines second.
-            </p>
+        <div class="flex items-center space-x-4 px-4">
+            <div class="text-xs font-bold uppercase text-gray-400">Battlefield Mode</div>
+            <button id="battleToggle" onclick="this.classList.toggle('bg-green-500'); this.classList.toggle('bg-gray-300')" class="w-10 h-5 bg-gray-300 rounded-full transition-all relative">
+                <div class="absolute w-4 h-4 bg-white rounded-full top-0.5 left-0.5 transition-all"></div>
+            </button>
         </div>
     </div>
 
-    <!-- Stats Column -->
-    <div class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.2s">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">SEO Metrics</h3>
-            <div class="space-y-4">
-                <div>
-                    <div class="flex justify-between text-sm mb-1">
-                        <span>Optimization Score</span>
-                        <span id="seo-score">0%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div id="seo-progress" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded text-center">
-                        <div class="text-xs text-gray-500 uppercase">Readability</div>
-                        <div id="readability-val" class="text-xl font-bold">-</div>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded text-center">
-                        <div class="text-xs text-gray-500 uppercase">Grade Level</div>
-                        <div id="grade-val" class="text-xl font-bold">-</div>
-                    </div>
-                </div>
+    <!-- Editor -->
+    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+        <textarea id="editor" class="w-full h-[600px] p-8 bg-transparent outline-none resize-none text-lg text-gray-700 dark:text-gray-200 placeholder-gray-300" placeholder="Start typing your masterpiece..."></textarea>
+    </div>
+
+    <!-- SERP Preview -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Google Search Preview</h3>
+        <div class="max-w-2xl">
+            <div id="serpTitle" class="text-xl text-blue-700 dark:text-blue-400 hover:underline cursor-pointer font-medium mb-1 truncate">Your Page Title Will Appear Here</div>
+            <div class="flex items-center text-green-700 dark:text-green-500 text-sm mb-1">
+                <span>https://yourdomain.com/</span><span id="serpSlug" class="font-medium">your-page-slug</span>
+                <i class="fas fa-caret-down ml-1"></i>
             </div>
+            <div id="serpDesc" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">Your meta description will be automatically generated from the first 160 characters of your content to help you visualize search results.</div>
         </div>
+    </div>
+</div>
+{% endblock %}
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.3s">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">Keyword Density</h3>
-            <canvas id="keywordChart" height="200"></canvas>
+{% block stats_sidebar %}
+<div class="space-y-8">
+    <!-- Score Card -->
+    <div class="text-center p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl border border-indigo-100 dark:border-indigo-800 slide-up">
+        <h3 class="text-sm font-bold text-indigo-500 uppercase mb-4">SEO Score</h3>
+        <div class="relative inline-flex items-center justify-center">
+            <svg class="w-32 h-32 transform -rotate-90">
+                <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-200 dark:text-gray-700" />
+                <circle id="scoreCircle" cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="364.4" stroke-dashoffset="364.4" class="text-indigo-500 transition-all duration-1000" />
+            </svg>
+            <span id="scoreText" class="absolute text-3xl font-bold">0%</span>
         </div>
+    </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up" style="animation-delay: 0.4s">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">Writing Alerts</h3>
-            <div id="alerts-list" class="space-y-2">
-                <div class="text-green-500 text-sm"><i class="fas fa-check-circle mr-2"></i> All good so far.</div>
+    <!-- Readability -->
+    <div class="grid grid-cols-2 gap-4">
+        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl text-center stat-card">
+            <div class="text-[10px] font-bold text-gray-400 uppercase">Flesch Ease</div>
+            <div id="readEase" class="text-xl font-bold">-</div>
+        </div>
+        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl text-center stat-card">
+            <div class="text-[10px] font-bold text-gray-400 uppercase">Grade Level</div>
+            <div id="readGrade" class="text-xl font-bold">-</div>
+        </div>
+    </div>
+
+    <!-- Keyword Density -->
+    <div class="slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Keyword Density</h3>
+        <canvas id="densityChart" height="250"></canvas>
+        <div id="keywordChips" class="mt-4 flex flex-wrap gap-2">
+            <!-- Chips will appear here -->
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="slide-up">
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Suggestions</h3>
+        <div id="alertsContainer" class="space-y-3">
+            <div class="flex items-center text-gray-400 text-sm italic">
+                <i class="fas fa-info-circle mr-2"></i> Start typing to see suggestions...
             </div>
         </div>
     </div>
@@ -71,58 +89,102 @@
 
 {% block scripts %}
 <script>
-let keywordChart;
+let densityChart;
 
-document.addEventListener('analysisUpdate', (e) => {
+document.addEventListener('analysisData', (e) => {
     const data = e.detail;
 
-    document.getElementById('readability-val').innerText = data.readability.flesch_reading_ease.toFixed(1);
-    document.getElementById('grade-val').innerText = data.readability.flesch_kincaid_grade;
+    // Update Score Circle
+    const score = data.seo.seo_score;
+    const offset = 364.4 - (364.4 * score / 100);
+    document.getElementById('scoreCircle').style.strokeDashoffset = offset;
+    document.getElementById('scoreText').innerText = score + '%';
 
-    // Update Chart
-    const labels = data.seo.word_freq.slice(0, 5).map(x => x[0]);
-    const values = data.seo.word_freq.slice(0, 5).map(x => x[1]);
+    // Colors based on score
+    const circle = document.getElementById('scoreCircle');
+    if(score < 40) circle.className = "text-red-500 transition-all duration-1000";
+    else if(score < 70) circle.className = "text-yellow-500 transition-all duration-1000";
+    else circle.className = "text-green-500 transition-all duration-1000";
 
-    if (keywordChart) {
-        keywordChart.data.labels = labels;
-        keywordChart.data.datasets[0].data = values;
-        keywordChart.update();
+    // Readability
+    document.getElementById('readEase').innerText = data.readability.flesch_reading_ease.toFixed(0);
+    document.getElementById('readGrade').innerText = data.readability.flesch_kincaid_grade.toFixed(1);
+
+    // SERP
+    document.getElementById('serpTitle').innerText = data.seo.serp_preview.title;
+    document.getElementById('serpSlug').innerText = data.seo.serp_preview.slug;
+    document.getElementById('serpDesc').innerText = data.seo.serp_preview.description;
+
+    // Chart
+    const labels = Object.keys(data.seo.density).slice(0, 5);
+    const values = Object.values(data.seo.density).slice(0, 5);
+
+    if (densityChart) {
+        densityChart.data.labels = labels;
+        densityChart.data.datasets[0].data = values;
+        densityChart.update();
     } else {
-        const ctx = document.getElementById('keywordChart').getContext('2d');
-        keywordChart = new Chart(ctx, {
-            type: 'bar',
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        densityChart = new Chart(ctx, {
+            type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Occurrences',
                     data: values,
-                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
-                    borderColor: 'rgb(79, 70, 229)',
-                    borderWidth: 1
+                    backgroundColor: ['#4f46e5', '#818cf8', '#c7d2fe', '#6366f1', '#4338ca'],
+                    borderWidth: 0
                 }]
             },
             options: {
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                plugins: { legend: { display: false } }
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
+                cutout: '70%'
             }
         });
     }
 
-    const seoScore = data.seo.seo_score;
-    document.getElementById('seo-score').innerText = seoScore + '%';
-    document.getElementById('seo-progress').style.width = seoScore + '%';
+    // Keyword Chips
+    const chipContainer = document.getElementById('keywordChips');
+    chipContainer.innerHTML = '';
+    labels.forEach((kw, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 fade-in';
+        chip.innerText = `${kw} ${values[i]}%`;
+        chipContainer.appendChild(chip);
+    });
 
-    const alertsList = document.getElementById('alerts-list');
-    alertsList.innerHTML = '';
+    // Alerts
+    const alertsBox = document.getElementById('alertsContainer');
+    alertsBox.innerHTML = '';
+
+    if (data.readability.flesch_reading_ease < 50) {
+        addAlert('warning', 'Content is difficult to read. Use simpler words.');
+    }
     if (data.seo.passive_voice_count > 0) {
-        alertsList.innerHTML += `<div class="text-yellow-600 text-sm fade-in"><i class="fas fa-exclamation-triangle mr-2"></i> ${data.seo.passive_voice_count} passive voice instances.</div>`;
+        addAlert('info', `${data.seo.passive_voice_count} passive voice instances. Try active voice.`);
     }
-    if (data.stats.avg_sentence_length > 25) {
-        alertsList.innerHTML += `<div class="text-red-500 text-sm fade-in"><i class="fas fa-exclamation-circle mr-2"></i> High average sentence length (${data.stats.avg_sentence_length}).</div>`;
+    if (data.semantics.filler_density > 5) {
+        addAlert('warning', 'High filler word density detected.');
     }
-    if (alertsList.innerHTML === '') {
-        alertsList.innerHTML = '<div class="text-green-500 text-sm fade-in"><i class="fas fa-check-circle mr-2"></i> No issues detected.</div>';
+    if (data.structure.heading_count === 0) {
+        addAlert('info', 'Add headings to improve structure.');
+    }
+    if (alertsBox.innerHTML === '') {
+        addAlert('success', 'Content looks well-optimized!');
     }
 });
+
+function addAlert(type, text) {
+    const colors = {
+        warning: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200',
+        info: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-200',
+        success: 'text-green-600 bg-green-50 dark:bg-green-900/20 border-green-200'
+    };
+    const icon = type === 'warning' ? 'exclamation-triangle' : (type === 'success' ? 'check-circle' : 'info-circle');
+
+    const div = document.createElement('div');
+    div.className = `flex items-start p-3 rounded-xl border ${colors[type]} slide-up`;
+    div.innerHTML = `<i class="fas fa-${icon} mt-1 mr-3"></i><span class="text-xs font-medium">${text}</span>`;
+    document.getElementById('alertsContainer').appendChild(div);
+}
 </script>
 {% endblock %}

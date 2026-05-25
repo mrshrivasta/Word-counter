@@ -1,73 +1,69 @@
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('darkModeToggle');
-const body = document.body;
-
-if (localStorage.getItem('darkMode') === 'enabled') {
-    body.classList.add('dark');
+function toggleDarkMode() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
 }
 
-if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', () => {
-        body.classList.toggle('dark');
-        if (body.classList.contains('dark')) {
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            localStorage.setItem('darkMode', 'disabled');
-        }
-    });
+function toggleFocusMode() {
+    document.body.classList.toggle('focus-mode');
 }
 
-// Focus Mode Toggle
-const focusModeToggle = document.getElementById('focusModeToggle');
-if (focusModeToggle) {
-    focusModeToggle.addEventListener('click', () => {
-        body.classList.toggle('focus-mode');
-    });
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('sidebar-collapsed');
+    document.querySelectorAll('.nav-text, .logo-text').forEach(el => el.classList.toggle('hidden'));
 }
 
-// Global state for streak and goals
-document.getElementById('streakCount').innerText = localStorage.getItem('writingStreak') || 0;
+function showThemeMenu() {
+    document.getElementById('themeMenu').classList.remove('hidden');
+}
+
+function hideThemeMenu() {
+    document.getElementById('themeMenu').classList.add('hidden');
+}
+
+function setTheme(theme) {
+    document.body.className = document.body.className.replace(/theme-\w+/g, '');
+    if (theme !== 'default') {
+        document.body.classList.add(`theme-${theme}`);
+    }
+    localStorage.setItem('currentTheme', theme);
+    hideThemeMenu();
+}
+
+// Init
+if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+const savedTheme = localStorage.getItem('currentTheme');
+if (savedTheme) setTheme(savedTheme);
+
+// Streak & Goals
 let dailyGoal = 500;
-let currentWordsTotal = 0;
-
 function updateGoalDisplay(words) {
-    currentWordsTotal = words;
-    const goalProgress = document.getElementById('goalProgress');
-    if (goalProgress) {
-        goalProgress.innerText = `${currentWordsTotal}/${dailyGoal}`;
-        if (currentWordsTotal >= dailyGoal) {
-            document.getElementById('goalDisplay').classList.add('text-green-600', 'font-bold');
-        }
-    }
+    const progress = Math.min(100, (words / dailyGoal) * 100);
+    const bar = document.getElementById('goalBar');
+    const text = document.getElementById('goalText');
+    if (bar) bar.style.width = `${progress}%`;
+    if (text) text.innerText = `${words}/${dailyGoal}`;
+
+    if (progress >= 100 && bar) bar.classList.replace('bg-green-500', 'bg-indigo-500');
 }
 
-// Pomodoro Timer
-let pomoInterval;
-let pomoTime = 25 * 60;
-let isPomoRunning = false;
+// Global WPM Tracker
+let startTypingTime = null;
+let initialWordCount = 0;
 
-function togglePomo() {
-    const btn = document.querySelector('#pomodoroDisplay button');
-    if (isPomoRunning) {
-        clearInterval(pomoInterval);
-        btn.innerText = 'Start';
-    } else {
-        pomoInterval = setInterval(updatePomo, 1000);
-        btn.innerText = 'Pause';
+function trackWPM(currentText) {
+    if (!startTypingTime) {
+        startTypingTime = new Date();
+        initialWordCount = currentText.trim().split(/\s+/).length;
+        return;
     }
-    isPomoRunning = !isPomoRunning;
-}
 
-function updatePomo() {
-    pomoTime--;
-    if (pomoTime <= 0) {
-        clearInterval(pomoInterval);
-        alert('Time is up! Take a break.');
-        pomoTime = 25 * 60;
-        isPomoRunning = false;
-        document.querySelector('#pomodoroDisplay button').innerText = 'Start';
+    const now = new Date();
+    const minutes = (now - startTypingTime) / 1000 / 60;
+    if (minutes > 0.05) {
+        const currentWords = currentText.trim().split(/\s+/).length;
+        const diff = Math.max(0, currentWords - initialWordCount);
+        const wpm = Math.round(diff / minutes);
+        document.getElementById('wpmValue').innerText = wpm;
     }
-    const mins = Math.floor(pomoTime / 60);
-    const secs = pomoTime % 60;
-    document.getElementById('pomoTimer').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
 }

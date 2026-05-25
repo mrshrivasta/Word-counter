@@ -38,7 +38,7 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('analysisUpdate', (e) => {
+document.addEventListener('analysisData', (e) => {
     const text = document.getElementById('editor').value;
     const questions = (text.match(/\?/g) || []).length;
     document.getElementById('question-count').innerText = questions;

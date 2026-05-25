@@ -6,4 +6,3 @@ textstat
 python-docx
 reportlab
 werkzeug
-playwright
