@@ -7,12 +7,6 @@ function toggleFocusMode() {
     document.body.classList.toggle('focus-mode');
 }
 
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('sidebar-collapsed');
-    document.querySelectorAll('.nav-text, .logo-text').forEach(el => el.classList.toggle('hidden'));
-}
-
 function showThemeMenu() {
     document.getElementById('themeMenu').classList.remove('hidden');
 }
@@ -30,34 +24,35 @@ function setTheme(theme) {
     hideThemeMenu();
 }
 
-// Init
+// Initialization
 if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 const savedTheme = localStorage.getItem('currentTheme');
 if (savedTheme) setTheme(savedTheme);
 
-// Streak & Goals
-let dailyGoal = 500;
+// Progress Logic
 function updateGoalDisplay(words) {
-    const progress = Math.min(100, (words / dailyGoal) * 100);
+    const goal = 500;
+    const progress = Math.min(100, (words / goal) * 100);
     const bar = document.getElementById('goalBar');
     const text = document.getElementById('goalText');
     if (bar) bar.style.width = `${progress}%`;
-    if (text) text.innerText = `${words}/${dailyGoal}`;
-
-    if (progress >= 100 && bar) bar.classList.replace('bg-green-500', 'bg-indigo-500');
+    if (text) text.innerText = `${words}/${goal} words`;
 }
 
-// Global WPM Tracker
+// WPM Tracker
 let startTypingTime = null;
 let initialWordCount = 0;
 
 function trackWPM(currentText) {
+    if (!currentText.trim()) {
+        startTypingTime = null;
+        document.getElementById('wpmValue').innerText = '0';
+        return;
+    }
     if (!startTypingTime) {
         startTypingTime = new Date();
         initialWordCount = currentText.trim().split(/\s+/).length;
-        return;
     }
-
     const now = new Date();
     const minutes = (now - startTypingTime) / 1000 / 60;
     if (minutes > 0.05) {

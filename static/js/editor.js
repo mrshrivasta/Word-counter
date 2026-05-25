@@ -2,7 +2,8 @@ const editor = document.getElementById('editor');
 const footWords = document.getElementById('footWords');
 const footChars = document.getElementById('footChars');
 const footRead = document.getElementById('footRead');
-const autosaveStatus = document.getElementById('autosaveStatus');
+const latencyDisplay = document.getElementById('latencyDisplay');
+const saveIndicator = document.getElementById('saveIndicator');
 
 let debounceTimer;
 
@@ -10,7 +11,7 @@ if (editor) {
     editor.addEventListener('input', () => {
         const text = editor.value;
 
-        // Update basic footer stats immediately
+        // Instant updates
         const words = text.trim() ? text.trim().split(/\s+/).length : 0;
         if (footWords) footWords.innerText = words;
         if (footChars) footChars.innerText = text.length;
@@ -19,95 +20,66 @@ if (editor) {
         updateGoalDisplay(words);
         trackWPM(text);
 
-        // Debounce advanced analysis
-        autosaveStatus.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+        // Analysis debounce
+        saveIndicator.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            performAnalysis(text);
-            localStorage.setItem('editor_content', text);
-        }, 800);
+            triggerFullAnalysis(text);
+        }, 1000);
     });
 
-    // Load initial
-    const saved = localStorage.getItem('editor_content');
+    // Initial Load
+    const saved = localStorage.getItem('wc_draft');
     if (saved) {
         editor.value = saved;
-        performAnalysis(saved);
+        triggerFullAnalysis(saved);
     }
 }
 
-async function performAnalysis(text) {
+async function triggerFullAnalysis(text) {
     if (!text.trim()) {
-        autosaveStatus.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Ready';
+        saveIndicator.innerHTML = '<i class="fas fa-circle text-[6px] mr-2 text-green-500"></i> Synced Local';
         return;
     }
 
     try {
-        const response = await fetch('/api/analyze', {
+        const res = await fetch('/api/analyze', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({text})
         });
-        const data = await response.json();
+        const data = await res.json();
 
-        document.getElementById('latencyDisplay').innerText = `Latency: ${data.processing_time}ms`;
-        autosaveStatus.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Saved ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        localStorage.setItem('wc_draft', text);
+        if (latencyDisplay) latencyDisplay.innerText = `Engine: ${data.processing_time}ms`;
+        saveIndicator.innerHTML = `<i class="fas fa-check-circle mr-2 text-indigo-500"></i> Saved ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
 
-        // Dispatch to page-specific scripts
-        const event = new CustomEvent('analysisData', { detail: data });
-        document.dispatchEvent(event);
-
+        // Dispatch to page specific logic
+        document.dispatchEvent(new CustomEvent('engineReady', { detail: data }));
     } catch (e) {
-        console.error("Analysis failed", e);
-        autosaveStatus.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i> Error';
+        saveIndicator.innerHTML = '<i class="fas fa-exclamation-triangle mr-2 text-red-500"></i> Error';
     }
 }
 
-// Keyboard Shortcuts
+// Shortcuts
 document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        performAnalysis(editor.value);
-    }
-    if (e.ctrlKey && e.key === '/') {
-        e.preventDefault();
-        toggleFocusMode();
-    }
-    if (e.ctrlKey && e.key === 'Enter') {
-        e.preventDefault();
-        performAnalysis(editor.value);
-    }
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); triggerFullAnalysis(editor.value); }
+    if (e.ctrlKey && e.key === '/') { e.preventDefault(); toggleFocusMode(); }
 });
 
+// Export Utils
 async function exportFile(format) {
-    const text = editor.value;
-    const response = await fetch(`/api/export/${format}`, {
+    const res = await fetch(`/api/export/${format}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: editor.value})
     });
-
-    if (response.ok) {
-        const blob = await response.blob();
+    if (res.ok) {
+        const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `document.${format}`;
-        document.body.appendChild(a);
+        a.download = `wc_export.${format}`;
         a.click();
-        a.remove();
-    }
-}
-
-function copyText() {
-    editor.select();
-    document.execCommand('copy');
-}
-
-function clearText() {
-    if (confirm('Clear everything?')) {
-        editor.value = '';
-        localStorage.removeItem('editor_content');
-        performAnalysis('');
     }
 }

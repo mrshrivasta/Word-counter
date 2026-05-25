@@ -5,6 +5,8 @@ from app.analysis.seo import get_seo_analysis
 from app.analysis.semantics import analyze_semantics
 from app.analysis.structure import analyze_structure
 from app.analysis.geo_aeo import analyze_geo_aeo
+from app.analysis.security import analyze_security
+from app.analysis.nlp_advanced import analyze_rhythm
 from werkzeug.utils import secure_filename
 import os
 from docx import Document
@@ -26,6 +28,8 @@ def analyze():
     semantics = analyze_semantics(text)
     structure = analyze_structure(text)
     geo_aeo = analyze_geo_aeo(text)
+    security = analyze_security(text)
+    rhythm = analyze_rhythm(text)
 
     processing_time = (time.time() - start_time) * 1000 # ms
 
@@ -36,11 +40,13 @@ def analyze():
         'semantics': semantics,
         'structure': structure,
         'geo_aeo': geo_aeo,
+        'security': security,
+        'rhythm': rhythm,
         'advanced': {
             'geo_score': geo_aeo.get('geo_authority_score', 0),
             'aeo_score': geo_aeo.get('aeo_relevance', 0),
-            'aio_score': 100 - semantics.get('filler_density', 0) * 5,
-            'sxo_score': structure.get('variety_score', 0)
+            'aio_score': max(0, 100 - semantics.get('filler_density', 0) * 5),
+            'sxo_score': min(100, rhythm.get('momentum_score', 0) + structure.get('variety_score', 0)//2)
         },
         'processing_time': round(processing_time, 2)
     })
@@ -87,7 +93,6 @@ def export_file(format):
         p.drawString(100, 800, "Text Export")
         y = 780
         for line in text.split('\n'):
-            # simple wrap
             words = line.split()
             current_line = []
             for word in words:

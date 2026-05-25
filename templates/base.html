@@ -3,164 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Counter Pro - SEO, GEO, AEO, AIO, SXO Expert</title>
+    <title>Word Counter Pro - Premium Content Analytics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --text-primary: #1e293b;
-            --accent-primary: #4f46e5;
-            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --sidebar-bg: #1e1b4b;
+            --accent: #4f46e5;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #0f172a;
         }
 
         body.dark {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-primary: #f1f5f9;
-            --accent-primary: #818cf8;
-            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --sidebar-bg: #020617;
+            --accent: #818cf8;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --text-main: #f1f5f9;
         }
 
         /* Themes */
         body.theme-cyberpunk {
-            --bg-primary: #0d0221;
-            --bg-secondary: #261447;
-            --text-primary: #ff0055;
-            --accent-primary: #00f0ff;
+            --bg-gradient: linear-gradient(135deg, #0d0221 0%, #261447 100%);
+            --accent: #00f0ff;
+            --text-main: #ff0055;
+            --card-bg: rgba(13, 2, 33, 0.8);
         }
-        body.theme-glass {
-            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-secondary: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+        body.theme-hacker {
+            --bg-gradient: #000000;
+            --accent: #00ff00;
+            --text-main: #00ff00;
+            --card-bg: rgba(0, 0, 0, 0.9);
         }
 
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: var(--bg-gradient);
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             transition: all 0.3s ease;
         }
 
-        .glass-card {
-            background: var(--bg-secondary);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            box-shadow: var(--card-shadow);
+        .premium-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent);
         }
 
-        .sidebar { background: #1e1b4b; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-collapsed { width: 4rem; }
+        #editor {
+            line-height: 1.8;
+            letter-spacing: 0.01em;
+            font-family: 'Manrope', sans-serif;
+            background: transparent;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
 
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .sidebar { background: var(--sidebar-bg); }
 
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        #editor { line-height: 1.7; letter-spacing: 0.2px; font-family: 'Poppins', sans-serif; }
-
-        .glow-indigo:hover { box-shadow: 0 0 15px rgba(79, 70, 229, 0.4); }
-
-        .active-nav-indicator { position: absolute; left: 0; width: 4px; height: 100%; background: var(--accent-primary); border-radius: 0 4px 4px 0; }
+        .glow-accent { filter: drop-shadow(0 0 8px var(--accent)); }
 
         .focus-mode .sidebar, .focus-mode .header, .focus-mode .stats-sidebar { display: none !important; }
         .focus-mode main { padding: 0 !important; }
-        .focus-mode #editor-container { max-width: 800px; margin: 0 auto; height: 100vh; padding-top: 5rem; }
+        .focus-mode #editor-container { max-width: 900px; margin: 0 auto; height: 100vh; padding: 4rem 2rem; }
+
+        /* Custom Progress Bars */
+        .progress-bar { height: 8px; border-radius: 4px; background: rgba(0,0,0,0.1); overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .score-red { background: #ef4444; }
+        .score-yellow { background: #f59e0b; }
+        .score-green { background: #10b981; }
     </style>
 </head>
-<body class="transition-colors duration-300">
-    <div class="flex h-screen overflow-hidden">
+<body class="transition-colors duration-500 overflow-hidden">
+    <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 relative z-20 transition-all duration-300">
-            <div class="p-6 flex items-center justify-between">
-                <h1 class="text-2xl font-bold logo-text">WC PRO</h1>
-                <button onclick="toggleSidebar()" class="hover:text-indigo-400"><i class="fas fa-bars"></i></button>
+        <aside id="sidebar" class="sidebar w-64 text-white flex-shrink-0 flex flex-col transition-all duration-300 z-30">
+            <div class="p-8">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg glow-accent">
+                        <i class="fas fa-pen-nib text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-black tracking-tighter">WC PRO</h1>
+                </div>
             </div>
-            <nav class="mt-6 space-y-1">
-                {% for p in ['seo', 'geo', 'aeo', 'aio', 'sxo'] %}
-                <a href="/{{ p if p != 'seo' else '' }}" class="group relative flex items-center px-6 py-4 transition-all hover:bg-white/10 {% if page == p %}bg-white/10{% endif %}">
-                    {% if page == p %}<div class="active-nav-indicator"></div>{% endif %}
-                    <i class="fas fa-{% if p=='seo' %}search{% elif p=='geo' %}globe{% elif p=='aeo' %}microphone{% elif p=='aio' %}robot{% else %}user-check{% endif %} w-6 text-xl"></i>
-                    <span class="ml-4 font-semibold nav-text">{{ p|upper }} Optimizer</span>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                {% for p, icon in [('seo', 'search'), ('geo', 'globe'), ('aeo', 'microphone'), ('aio', 'robot'), ('sxo', 'user-check')] %}
+                <a href="/{{ p if p != 'seo' else '' }}" class="flex items-center px-4 py-3 rounded-xl transition-all hover:bg-white/10 group {% if page == p %}bg-white/10 shadow-inner{% endif %}">
+                    <i class="fas fa-{{ icon }} w-6 text-lg group-hover:scale-110 transition-transform"></i>
+                    <span class="ml-4 font-bold uppercase text-xs tracking-widest">{{ p }} Optimizer</span>
+                    {% if page == p %}<div class="ml-auto w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>{% endif %}
                 </a>
                 {% endfor %}
             </nav>
-            <div class="absolute bottom-0 w-full p-4 space-y-4">
-                <div class="flex justify-around items-center bg-black/20 rounded-xl p-2">
-                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-moon"></i></button>
-                    <button onclick="toggleFocusMode()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-expand"></i></button>
-                    <button onclick="showThemeMenu()" class="p-2 rounded-lg hover:bg-white/10 transition-all"><i class="fas fa-palette"></i></button>
+
+            <div class="p-6 mt-auto">
+                <div class="bg-black/20 rounded-2xl p-2 flex justify-around">
+                    <button onclick="toggleDarkMode()" class="p-2 hover:bg-white/10 rounded-lg transition-all" title="Dark Mode"><i class="fas fa-moon"></i></button>
+                    <button onclick="toggleFocusMode()" class="p-2 hover:bg-white/10 rounded-lg transition-all" title="Zen Mode"><i class="fas fa-expand-arrows-alt"></i></button>
+                    <button onclick="showThemeMenu()" class="p-2 hover:bg-white/10 rounded-lg transition-all" title="Themes"><i class="fas fa-palette"></i></button>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col relative overflow-hidden">
             <!-- Header -->
-            <header class="header h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-8 z-10">
-                <div class="flex items-center space-x-4">
-                    <h2 class="text-xl font-bold tracking-tight">{% block header_title %}{% endblock %}</h2>
-                    <span id="autosaveStatus" class="text-xs text-gray-400 flex items-center">
-                        <i class="fas fa-check-circle mr-1"></i> Ready
-                    </span>
-                </div>
+            <header class="header h-20 flex items-center justify-between px-10 z-20">
                 <div class="flex items-center space-x-6">
-                    <div class="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                        <i class="fas fa-fire text-orange-500"></i>
-                        <span id="streakCount" class="font-bold text-orange-600">0</span>
+                    <h2 class="text-2xl font-black tracking-tight">{% block header_title %}{% endblock %}</h2>
+                    <div id="saveIndicator" class="flex items-center text-[10px] font-bold uppercase text-gray-400 tracking-tighter">
+                        <i class="fas fa-circle text-[6px] mr-2 text-green-500 animate-pulse"></i>
+                        Synced Local
                     </div>
-                    <div class="hidden md:flex items-center space-x-3">
-                        <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div id="goalBar" class="h-full bg-green-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+
+                <div class="flex items-center space-x-8">
+                    <div class="hidden xl:flex items-center space-x-4">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase">Daily Goal</span>
+                            <span id="goalText" class="text-xs font-black">0/500 words</span>
                         </div>
-                        <span id="goalText" class="text-xs font-semibold text-gray-500">0/500</span>
+                        <div class="w-32 progress-bar">
+                            <div id="goalBar" class="progress-fill bg-indigo-500" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <div id="wpmCounter" class="flex items-center text-indigo-500 font-bold">
-                        <i class="fas fa-keyboard mr-2"></i> <span id="wpmValue">0</span> WPM
+                    <div class="flex items-center space-x-3 px-4 py-2 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                        <i class="fas fa-keyboard text-indigo-500"></i>
+                        <span id="wpmValue" class="font-black text-indigo-600">0</span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">WPM</span>
                     </div>
                 </div>
             </header>
 
-            <div class="flex-1 overflow-hidden flex">
-                <!-- Editor Area -->
-                <div id="editor-container" class="flex-1 overflow-y-auto p-8 relative">
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Editor container -->
+                <div id="editor-container" class="flex-1 overflow-y-auto px-10 pb-10">
                     {% block content %}{% endblock %}
                 </div>
 
-                <!-- Right Stats Sidebar -->
-                <aside class="stats-sidebar w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto p-6 hidden lg:block">
+                <!-- Right Sidebar for specific stats -->
+                <aside class="stats-sidebar w-96 flex-shrink-0 px-8 pb-10 overflow-y-auto hidden 2xl:block">
                     {% block stats_sidebar %}{% endblock %}
                 </aside>
             </div>
 
-            <!-- Footer -->
-            <footer class="h-10 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 text-xs font-medium text-gray-500">
-                <div class="flex space-x-6">
-                    <span>Words: <strong id="footWords" class="text-gray-900 dark:text-white">0</strong></span>
-                    <span>Chars: <strong id="footChars" class="text-gray-900 dark:text-white">0</strong></span>
-                    <span>Reading: <strong id="footRead" class="text-gray-900 dark:text-white">0m</strong></span>
+            <!-- Global Footer -->
+            <footer class="h-12 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between px-10 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
+                <div class="flex space-x-8">
+                    <span>Words: <strong id="footWords" class="text-current">0</strong></span>
+                    <span>Characters: <strong id="footChars" class="text-current">0</strong></span>
+                    <span>Reading: <strong id="footRead" class="text-current">0m</strong></span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span id="latencyDisplay">Latency: 0ms</span>
-                    <span class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> AI-Free Analytics</span>
+                <div class="flex items-center space-x-6">
+                    <span id="latencyDisplay">Engine: 0ms</span>
+                    <span class="flex items-center text-indigo-500"><i class="fas fa-shield-alt mr-2"></i> Local-Only Analytics</span>
                 </div>
             </footer>
         </main>
     </div>
 
-    <div id="themeMenu" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 w-80 shadow-2xl scale-in">
-            <h3 class="text-lg font-bold mb-6">Select Theme</h3>
+    <!-- Modals -->
+    <div id="themeMenu" class="fixed inset-0 bg-black/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-6">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-[2rem] p-10 shadow-2xl scale-in border border-white/10">
+            <h3 class="text-2xl font-black mb-8">Visual Experience</h3>
             <div class="grid grid-cols-2 gap-4">
-                <button onclick="setTheme('default')" class="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-500">Minimal</button>
-                <button onclick="setTheme('cyberpunk')" class="p-4 rounded-xl border-2 border-pink-500 text-pink-500">Cyberpunk</button>
-                <button onclick="setTheme('neon')" class="p-4 rounded-xl border-2 border-green-500 text-green-500">Neon</button>
-                <button onclick="setTheme('glass')" class="p-4 rounded-xl border-2 border-blue-400 text-blue-400">Glass</button>
+                {% for t, name in [('default', 'Studio Minimal'), ('cyberpunk', 'Cyber Neon'), ('hacker', 'Hacker Terminal'), ('glass', 'Crystal Clear')] %}
+                <button onclick="setTheme('{{t}}')" class="p-6 rounded-2xl border-2 border-transparent bg-gray-100 dark:bg-gray-700/50 hover:border-indigo-500 transition-all flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full mb-3 theme-preview-{{t}} border-2 border-white/20"></div>
+                    <span class="font-bold text-xs">{{name}}</span>
+                </button>
+                {% endfor %}
             </div>
-            <button onclick="hideThemeMenu()" class="mt-8 w-full py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold">Close</button>
+            <button onclick="hideThemeMenu()" class="mt-10 w-full py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-500/30">Apply Changes</button>
         </div>
     </div>
 

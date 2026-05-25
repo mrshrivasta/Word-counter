@@ -1,35 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}AEO Helper{% endblock %}
-{% block header_title %}AEO (Answer Engine Optimization){% endblock %}
+{% block title %}AEO Intelligence{% endblock %}
+{% block header_title %}Answer Engine Optimization (AEO){% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
-    <div class="lg:col-span-2 space-y-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 slide-up">
-            <textarea id="editor" class="w-full h-[500px] p-4 bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="Paste content to optimize for voice/answer engines..."></textarea>
-        </div>
-
-        <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded slide-up">
-            <h4 class="font-bold text-purple-800 dark:text-purple-300">AEO Disclaimer</h4>
-            <p class="text-sm text-purple-700 dark:text-purple-400">
-                AEO is about providing direct answers to specific questions. Structured data, clear headings, and concise "Featured Snippet" style paragraphs are key. Remember that users often ask questions in a conversational tone.
-            </p>
-        </div>
+<div class="space-y-8 fade-in">
+    <!-- Editor Card -->
+    <div class="premium-card p-1">
+        <textarea id="editor" class="w-full h-[550px] p-8 outline-none resize-none text-xl" placeholder="Optimize for Featured Snippets and Voice Search..."></textarea>
     </div>
 
-    <div class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 stat-card slide-up">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">Answerability</h3>
-            <div class="space-y-4">
-                <div class="flex justify-between">
-                    <span>Direct Answers</span>
-                    <span class="font-bold text-purple-600">High</span>
+    <!-- AEO Specifics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="premium-card p-8">
+            <h3 class="text-xs font-black uppercase text-purple-500 mb-6 tracking-widest">Question-Answer Integrity</h3>
+            <div id="qaStats" class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                    <span class="text-xs font-bold">Total Questions</span>
+                    <span id="qCount" class="font-black text-purple-500 text-lg">0</span>
                 </div>
-                <div class="flex justify-between">
-                    <span>Question Phrases</span>
-                    <span id="question-count" class="font-bold">0</span>
-                </div>
+                <div class="text-[10px] text-gray-400 font-bold uppercase">AEO engines prioritize direct answers following a clear interrogative sentence.</div>
+            </div>
+        </div>
+        <div class="premium-card p-8">
+            <h3 class="text-xs font-black uppercase text-purple-500 mb-6 tracking-widest">Snippet Optimization</h3>
+            <div id="snippetList" class="space-y-3">
+                <!-- Snippets -->
+                <p class="text-gray-400 italic text-sm">Waiting for interrogative patterns...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block stats_sidebar %}
+<div class="space-y-8">
+    <div class="premium-card p-8 text-center bg-purple-500/10 border-purple-500/20">
+        <h3 class="text-xs font-black uppercase text-purple-500 mb-4">AEO Relevance</h3>
+        <div id="aeoVal" class="text-6xl font-black text-purple-600">0%</div>
+        <p class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Answer Logic Score</p>
+    </div>
+
+    <div class="premium-card p-8">
+        <h3 class="text-xs font-black uppercase text-gray-400 mb-6">Semantic Density</h3>
+        <div id="aeoAnalysis" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-gray-400">CITATIONS</span>
+                <span id="citationCount" class="font-black text-indigo-500">0</span>
             </div>
         </div>
     </div>
@@ -38,10 +55,24 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('analysisData', (e) => {
-    const text = document.getElementById('editor').value;
-    const questions = (text.match(/\?/g) || []).length;
-    document.getElementById('question-count').innerText = questions;
+document.addEventListener('engineReady', (e) => {
+    const data = e.detail;
+    document.getElementById('aeoVal').innerText = data.advanced.aeo_score + '%';
+    document.getElementById('qCount').innerText = data.geo_aeo.question_count;
+    document.getElementById('citationCount').innerText = data.geo_aeo.citation_markers;
+
+    const sList = document.getElementById('snippetList');
+    sList.innerHTML = '';
+    if(data.geo_aeo.snippet_candidates.length > 0) {
+        data.geo_aeo.snippet_candidates.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border-l-4 border-purple-500 fade-in';
+            div.innerHTML = `<span class="text-xs font-medium text-gray-600 dark:text-gray-300">${s}</span>`;
+            sList.appendChild(div);
+        });
+    } else {
+        sList.innerHTML = '<p class="text-gray-400 italic text-sm">No snippet candidates detected yet...</p>';
+    }
 });
 </script>
 {% endblock %}

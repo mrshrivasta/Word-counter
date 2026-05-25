@@ -1,98 +1,74 @@
 {% extends "base.html" %}
 
 {% block title %}SXO Optimizer{% endblock %}
-{% block header_title %}Search Experience Optimization (SXO){% endblock %}
+{% block header_title %}Search Experience Intelligence{% endblock %}
 
 {% block content %}
-<div class="space-y-6 fade-in">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
-        <textarea id="editor" class="w-full h-[500px] p-8 bg-transparent outline-none resize-none text-lg" placeholder="Focus on user intent and structural flow..."></textarea>
+<div class="space-y-8 fade-in">
+    <div class="premium-card p-1">
+        <textarea id="editor" class="w-full h-[550px] p-8 outline-none resize-none text-xl" placeholder="Design content for maximum user engagement..."></textarea>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Experience Markers</h3>
-            <div id="sxoMarkers" class="space-y-3">
-                <!-- Markers -->
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Reading Momentum</h3>
-            <canvas id="momentumChart" height="150"></canvas>
-        </div>
+    <div class="premium-card p-8">
+        <h3 class="text-xs font-black uppercase text-indigo-500 mb-6 tracking-widest">Reading Rhythm</h3>
+        <canvas id="rhythmChart" height="150"></canvas>
     </div>
 </div>
 {% endblock %}
 
 {% block stats_sidebar %}
 <div class="space-y-8">
-    <div class="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-3xl border border-orange-100 dark:border-orange-800 slide-up">
-        <h3 class="text-sm font-bold text-orange-500 uppercase mb-4 text-center">SXO Score</h3>
-        <div id="sxoScoreDisplay" class="text-4xl font-black text-center text-orange-600">0%</div>
-        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div id="sxoBar" class="h-full bg-orange-600 transition-all duration-1000" style="width: 0%"></div>
-        </div>
+    <div class="premium-card p-8 text-center">
+        <h3 class="text-xs font-black uppercase text-orange-500 mb-4">SXO Impact</h3>
+        <div id="sxoValue" class="text-6xl font-black text-orange-600">0%</div>
+        <p class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Engagement Potential</p>
     </div>
 
-    <div class="slide-up">
-        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Wall of Text Check</h3>
-        <div id="wallCheck" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-between">
-            <span class="text-xs font-bold uppercase text-gray-400">Status</span>
-            <span id="wallStatus" class="font-bold text-green-600">Perfect</span>
-        </div>
+    <div class="premium-card p-8">
+        <h3 class="text-xs font-black uppercase text-gray-400 mb-6">Momentum Score</h3>
+        <div id="momentumVal" class="text-3xl font-black">0</div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">Sentence variation depth</p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-let momChart;
-document.addEventListener('analysisData', (e) => {
+let rhythmChart;
+document.addEventListener('engineReady', (e) => {
     const data = e.detail;
 
-    document.getElementById('sxoScoreDisplay').innerText = data.advanced.sxo_score + '%';
-    document.getElementById('sxoBar').style.width = data.advanced.sxo_score + '%';
+    document.getElementById('sxoValue').innerText = data.advanced.sxo_score + '%';
+    document.getElementById('momentumVal').innerText = data.rhythm.momentum_score;
 
-    const wallStatus = document.getElementById('wallStatus');
-    const wallCheck = document.getElementById('wallCheck');
-    if (data.structure.wall_of_text_indices.length > 0) {
-        wallStatus.innerText = 'Red Flag';
-        wallStatus.className = 'font-bold text-red-600';
-        wallCheck.className = 'p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-between';
+    const labels = data.rhythm.sentence_lengths.map((_, i) => i + 1);
+    const values = data.rhythm.sentence_lengths;
+
+    if (rhythmChart) {
+        rhythmChart.data.labels = labels;
+        rhythmChart.data.datasets[0].data = values;
+        rhythmChart.update();
     } else {
-        wallStatus.innerText = 'Perfect';
-        wallStatus.className = 'font-bold text-green-600';
-        wallCheck.className = 'p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-between';
-    }
-
-    const labels = data.structure.sentence_lengths.map((_, i) => i + 1);
-    const values = data.structure.sentence_lengths;
-
-    if (momChart) {
-        momChart.data.labels = labels;
-        momChart.data.datasets[0].data = values;
-        momChart.update();
-    } else {
-        const ctx = document.getElementById('momentumChart').getContext('2d');
-        momChart = new Chart(ctx, {
+        const ctx = document.getElementById('rhythmChart').getContext('2d');
+        rhythmChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Sentence Length',
+                    label: 'Sentence Rhythm',
                     data: values,
                     borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    tension: 0.4,
                     fill: true,
-                    tension: 0.4
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)'
                 }]
             },
             options: {
-                plugins: { legend: { display: false } },
                 scales: {
                     x: { display: false },
                     y: { beginAtZero: true, grid: { display: false } }
-                }
+                },
+                plugins: { legend: { display: false } }
             }
         });
     }

@@ -1,27 +1,23 @@
 {% extends "base.html" %}
 
 {% block title %}AIO Optimizer{% endblock %}
-{% block header_title %}AI Interaction Optimization (AIO){% endblock %}
+{% block header_title %}AI Interaction Optimization{% endblock %}
 
 {% block content %}
-<div class="space-y-6 fade-in">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
-        <textarea id="editor" class="w-full h-[500px] p-8 bg-transparent outline-none resize-none text-lg" placeholder="Optimize for AI semantic understanding..."></textarea>
+<div class="space-y-8 fade-in">
+    <div class="premium-card p-1">
+        <textarea id="editor" class="w-full h-[550px] p-8 outline-none resize-none text-xl" placeholder="Check your content's semantic clarity..."></textarea>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Semantic Clarity</h3>
-            <div id="semanticAnalysis" class="space-y-4">
-                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                    <span class="text-sm">Filler Word Impact</span>
-                    <span id="fillerImpact" class="font-bold text-green-500">Low</span>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="premium-card p-8">
+            <h3 class="text-xs font-black uppercase text-indigo-500 mb-6 tracking-widest">Tone Profile</h3>
+            <canvas id="toneChart" height="200"></canvas>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 slide-up">
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Tone Profile</h3>
-            <canvas id="toneChart" height="150"></canvas>
+        <div class="premium-card p-8">
+            <h3 class="text-xs font-black uppercase text-indigo-500 mb-6 tracking-widest">Semantic Flow</h3>
+            <div id="toneIndicator" class="text-3xl font-black mb-4">NEUTRAL</div>
+            <p class="text-xs text-gray-500 font-bold">Dominant tone detected via AI-free keyword frequency analysis.</p>
         </div>
     </div>
 </div>
@@ -29,19 +25,17 @@
 
 {% block stats_sidebar %}
 <div class="space-y-8">
-    <div class="p-6 bg-teal-50 dark:bg-teal-900/20 rounded-3xl border border-teal-100 dark:border-teal-800 slide-up">
-        <h3 class="text-sm font-bold text-teal-500 uppercase mb-4 text-center">AIO Readability</h3>
-        <div id="aioScoreDisplay" class="text-4xl font-black text-center text-teal-600">0%</div>
-        <div class="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div id="aioBar" class="h-full bg-teal-600 transition-all duration-1000" style="width: 0%"></div>
-        </div>
+    <div class="premium-card p-8 text-center">
+        <h3 class="text-xs font-black uppercase text-indigo-500 mb-4">AIO Score</h3>
+        <div id="aioValue" class="text-6xl font-black text-indigo-600">0%</div>
+        <p class="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Readability + Clarity Index</p>
     </div>
 
-    <div class="slide-up">
-        <h3 class="text-sm font-bold uppercase text-gray-400 mb-4">Vocabulary Diversity</h3>
-        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
-            <span class="text-xs font-bold uppercase text-gray-400">Unique Words</span>
-            <span id="uniqueCount" class="text-xl font-bold">0</span>
+    <div class="premium-card p-8">
+        <h3 class="text-xs font-black uppercase text-gray-400 mb-6">Filler Word Intensity</h3>
+        <div class="flex items-center justify-between">
+            <div id="fillerFill" class="h-4 bg-indigo-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            <span id="fillerVal" class="ml-4 font-black">0%</span>
         </div>
     </div>
 </div>
@@ -50,21 +44,13 @@
 {% block scripts %}
 <script>
 let toneChart;
-document.addEventListener('analysisData', (e) => {
+document.addEventListener('engineReady', (e) => {
     const data = e.detail;
 
-    document.getElementById('aioScoreDisplay').innerText = data.advanced.aio_score.toFixed(0) + '%';
-    document.getElementById('aioBar').style.width = data.advanced.aio_score + '%';
-    document.getElementById('uniqueCount').innerText = data.stats.unique_words;
-
-    const fillerImpact = document.getElementById('fillerImpact');
-    if (data.semantics.filler_density > 5) {
-        fillerImpact.innerText = 'High';
-        fillerImpact.className = 'font-bold text-red-500';
-    } else {
-        fillerImpact.innerText = 'Low';
-        fillerImpact.className = 'font-bold text-green-500';
-    }
+    document.getElementById('aioValue').innerText = data.advanced.aio_score.toFixed(0) + '%';
+    document.getElementById('fillerFill').style.width = data.semantics.filler_density + '%';
+    document.getElementById('fillerVal').innerText = data.semantics.filler_density + '%';
+    document.getElementById('toneIndicator').innerText = data.semantics.dominant_tone.toUpperCase();
 
     const labels = Object.keys(data.semantics.tone_scores);
     const values = Object.values(data.semantics.tone_scores);
@@ -76,17 +62,19 @@ document.addEventListener('analysisData', (e) => {
     } else {
         const ctx = document.getElementById('toneChart').getContext('2d');
         toneChart = new Chart(ctx, {
-            type: 'polarArea',
+            type: 'radar',
             data: {
                 labels: labels,
                 datasets: [{
+                    label: 'Tone Intensity',
                     data: values,
-                    backgroundColor: ['rgba(79, 70, 229, 0.5)', 'rgba(20, 184, 166, 0.5)', 'rgba(245, 158, 11, 0.5)']
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.2)'
                 }]
             },
             options: {
-                plugins: { legend: { display: false } },
-                scales: { r: { ticks: { display: false } } }
+                scales: { r: { ticks: { display: false }, grid: { display: false } } },
+                plugins: { legend: { display: false } }
             }
         });
     }
